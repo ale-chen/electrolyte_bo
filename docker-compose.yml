@@ -1,0 +1,22 @@
+version: "3.8"
+services:
+  web:
+    image: chement.db:latest
+    build: 
+      context: .
+      args:
+        - SSH_PRIVATE_KEY=${SSH_PRIVATE_KEY}
+      dockerfile: ./Dockerfile
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./history:/app/my_project/app/history
+      - ./db:/app/my_project/app/db
+networks:
+  mynet:
+    ipam:
+      driver: default
+      config:
+        -
+          subnet: 172.23.0.0/16
+          gateway: 172.20.0.1
