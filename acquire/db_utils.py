@@ -304,7 +304,7 @@ def get_components_by_id(electrolyte_id):
 def add_component_type(
     chemical: Chemical
 ):
-    '''self-evident--only takes in Chemical class
+    '''self-evident; only takes in Chemical class
 
     Keyword arguments:
     chemical -- the Chemical object in question.
