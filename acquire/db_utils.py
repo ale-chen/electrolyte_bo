@@ -19,7 +19,17 @@ class Chemical:
     'Pt', 'Au', 'Hg', 'Tl', 'Pb', 'Bi', 'Th', 'Pa', 'U', 'Np', 'Pu', 'Am', 'Cm',
     'Bk','Cf', 'Es', 'Fm', 'Md', 'No', 'Lr', 'Rf', 'Db', 'Sg', 'Bh', 'Hs', 'Mt',
      'Ds', 'Rg', 'Cn', 'Nh', 'Fl', 'Mc', 'Lv', 'Ts', 'Og']
-    def __init__(self, formula=' ', notes='', molar_mass=0, price=0, is_salt = False):
+    def __init__(self, formula=' ', notes='', molar_mass=0.0, price=0.0, is_salt = False):
+        '''Create a new Chemical object. Each chemical object is uniquely identified by its evaluated formula.
+
+        Keyword arguments:
+        self --
+        formula -- string of a given 'Chemical,' or electrolyte component. This can handle strings of the form Ca(ClO4)2, and will reorganize this to look like O8Cl2Ca, and store elements and their amounts in a dictionary format.
+        notes -- some generic string that can be stored in the database about a given component. Typically this is used to mark if a given component is purchased in hydrate form, or to note the colloquial name.
+        molar_mass -- molar mass is a float that is grams/mol
+        price -- dollars/g if in grams; dollars/mL if in mL. This should be found assuming the maximum volume purchasable on sigma aldrich.
+        is_salt -- boolean that denotes whether a component is a salt or a solvent.
+        '''
         self.elements = self.parse_formula(formula)
         self.notes = notes
         self.molar_mass = molar_mass
@@ -27,10 +37,13 @@ class Chemical:
         self.is_salt = is_salt
 
     def parse_formula(self, formula): #recursive function to parse equivalent formulas
-        '''
-        Recursively parses through a formula string, accounting for parentheses and different orderings for elements.
+        '''Recursively parses through a formula string, accounting for parentheses and different orderings for elements.
         Returns a 'Counter' object, which is really just a dictionary with elements on the left, and amounts on the
         right.
+
+        Keyword arguments:
+        self -- 
+        formula -- string of a given 'Chemical,' or electrolyte component.
         '''
 
         elements = Counter()
@@ -77,24 +90,30 @@ class Chemical:
         return elements
 
     def __eq__(self, other):
-        '''
-        equivalence check which compares elements.
+        '''Equivalence check which compares element dictionaries
+
+        Keyword arguments:
+        self -- 
+        other -- the other Chemical object to be compared
         '''
         if isinstance(other, Chemical):
             return self.elements == other.elements
         return False
 
     def __str__(self):
-        '''
-        outputs formula as a string with elements sorted by element number
+        '''Outputs formula as a string with elements sorted by element number. Ex: Ca(ClO4)2 -> O8Cl2Ca
+
+        Keyword arguments:
+        self --
         '''
         sorted_elements = sorted(self.elements.items(), key=lambda x: self.ELEMENTS.index(x[0]))
         return ''.join(f'{element}{count}' if count > 1 else f'{element}' for element, count in sorted_elements)
 
 def get_electrolyte_by_components(components: dict):
-    '''
-    takes in dictionary of components and amounts, ex: {"formula1": 3.23, "formula2": .57}
-    returns id of an electrolyte.
+    '''Takes in dictionary of components and amounts, ex: {"formula1": 3.23, "formula2": .57} returns id of an electrolyte.
+
+    Keyword arguments:
+    components -- dictionary of components and amounts. Amounts should be a float, and components should be strings. Strings can be different to formulas listed in database, as a separate Chemical object is created for each formula to standardize formulas.
     '''
     conn = sqlite3.connect(DB, isolation_level='IMMEDIATE')
     try:
@@ -144,10 +163,19 @@ def add_electrolyte(components: dict,
                     v_window_high_bound: float = -1,
                     surface_tension: float = -1
                     ):
-    """
-    components: dict of chemical formula and amount; e.g. {str: float, ...}
+    """adds a new electrolyte with certain properties--each electrolyte must be made up of componenets already stored in the database.
 
-    adds a new electrolyte to database with components as dictionary
+    Keyword arguments:
+    components -- dict of chemical formula and amount; e.g. {str: float, ...}. Chemical objects will be created for each formula, so formulas do not have to conform exactly to those listed in component table.
+    conductivity -- final conductivity value for given electrolyte--should NOT be resistance, conductance, or resistivity
+    conduct_uncert_bound -- distance from uncertainty bounds for conductivity, i.e. \pm{conduct_uncert_bound}; -1 for no input.
+    concent_uncert_bound -- distance from uncertainty bounds for concentration, i.e. \pm{concent_uncert_bound}; -1 for no input.
+    density -- density, float, listed as -1 for no input.
+    temperature -- temperature, float, listed as -1 for no input.
+    viscosity -- viscocity, float, listed as -1 for no input.
+    v_window_low_bound -- voltage window lower bound, float.
+    v_window_high_bound -- voltage window upper bound, float.
+    surface_tension -- surface tension, float, listed as -1 for no input.
     """
     if(check_electrolyte_exists(components)):
         raise ValueError(f'Electrolyte with formula {components} already exists')
@@ -208,8 +236,10 @@ def add_electrolyte(components: dict,
         conn.close()
 
 def check_electrolyte_exists(components: dict):
-    '''
-    Checks if an electrolyte with matching components and amounts already exists in the dictionary.
+    '''Checks if an electrolyte with matching components and amounts already exists in the database.
+
+    Keyword arguments:
+    components -- dict of chemical formula and amount; e.g. {str: float, ...}. Chemical objects will be created for each formula, so formulas do not have to conform exactly to those listed in component table.
     '''
 
     conn = sqlite3.connect(DB)
@@ -245,8 +275,10 @@ def check_electrolyte_exists(components: dict):
         conn.close()
 
 def get_components_by_id(electrolyte_id):
-    '''
-    takes in electrolyte id, and returns dictionary of components and amounts per component
+    '''takes in electrolyte id, and returns dictionary of components and amounts per component
+
+    Keyword arguments:
+    electrolyte_id -- int, electrolyte id
     '''
     conn = sqlite3.connect(DB)
     try:
@@ -272,8 +304,10 @@ def get_components_by_id(electrolyte_id):
 def add_component_type(
     chemical: Chemical
 ):
-    '''
-    self-evident--only takes in Chemical class
+    '''self-evident--only takes in Chemical class
+
+    Keyword arguments:
+    chemical -- the Chemical object in question.
     '''
     conn = sqlite3.connect(DB)
     try:
@@ -298,8 +332,10 @@ def add_component_type(
 def get_component_type(
     formula: str
 ):
-    '''
-    returns chemical type of a component, from just its formula.
+    '''returns attributes about component from its formula.
+    
+    Keyword arguments:
+    formula -- str, formula for component, does not have to be arranged; a Chemical object is created to reformat formula string when checking.
     '''
     formatted_formula = Chemical(formula).__str__()
 
@@ -327,8 +363,10 @@ def get_component_type(
 def remove_component_type(
     formula: str
 ):
-    '''
-    removes component from table just from formula
+    '''removes component from table just from formula.
+
+    Keyword arguments:
+    formula -- str, formula for component, does not have to be arranged; a Chemical object is created to reformat formula string when checking.
     '''
     conn = sqlite3.connect(DB)
     try:
@@ -353,6 +391,11 @@ def remove_component_type(
         conn.close()
 
 def remove_electrolyte_by_id(id:int):
+    '''removes electrolyte entry, and corresponding electrolyte_components entries from electrolyte id
+
+    Keyword arguments:
+    id -- int id of electrolyte
+    '''
     conn = sqlite3.connect(DB)
     try:
         c = conn.cursor()
@@ -365,6 +408,11 @@ def remove_electrolyte_by_id(id:int):
     finally:
         conn.close()
 def get_experiment_electrolytes(component_list):
+    '''for a given experiment run, takes list of all considered components, and returns all electrolytes from database which are in the considered space (and subspaces). lists unincluded component amounts for all electrolytes in subspaces as 0.
+    
+    Keyword arguments:
+    component_list -- list of formula strings.
+    '''
     conn = sqlite3.connect(DB)
     try:
         c = conn.cursor()
@@ -439,6 +487,11 @@ def get_experiment_electrolytes(component_list):
 
 
 def generate_test_electrolytes(num_electrolytes: int):
+    '''generates dummy electrolytes with randomized conductivities; inputs these into database.
+    
+    Keyword arguments:
+    num_electrolytes -- number of dummies to generate.
+    '''
     def generate_random_amount(upper_limit=31.9):
         return random.uniform(0.1, upper_limit)
 

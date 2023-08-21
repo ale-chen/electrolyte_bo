@@ -1,3 +1,4 @@
+#RESOLUTION DIFFERENT FOR SALTS AND SOLVENTS
 import json
 import os
 from typing import Tuple, List
@@ -12,14 +13,18 @@ def generate_config_json(all_chemicals: Tuple[Chemical, Tuple[float,float]],
                         initials = '',
                         output_filepath = '.'
                         ):
-    '''
-    bounds list is of form:
-    {
-    Chemical: tuple[lower_bound_float, upper_bound_float]
-    }
+    '''generates .json and .py files for descriptioins of the space and constraints respectively for a given experimental run.
+
+    Keyword arguments:
+    all_chemicals -- list of tuples which pair amount bounds with Chemical objects. This should describe the whole space of all considered electrolyte points from the database, not just the subspace that is being currently explored.
+    used_chemicals -- list of Chemical objects that are being mixed in today's experiments.
+    max_vol -- max volume, float
+    min_vol -- min volume, float
+    initials -- experimenter initials, str
+    output_filepath -- filepath to output config files
     '''
 
-    DISCRETE_RESOLUTION = .001
+    DISCRETE_RESOLUTION = .01
 
     domain = {}
 
